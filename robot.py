@@ -1,6 +1,7 @@
 import itchat,time,requests,random
 from itchat.content import TEXT
-import winsound
+from wxpy import *
+import winsound,re
 
 #登录微信
 itchat.auto_login(hotReload = True)
@@ -13,29 +14,39 @@ class Robot:
     apiKey = ['98402a996a1f41b7b75aa427ca1b7902','6c293e88435c4ef99b86f8d15ed25a3f','87a7dad6235e0537377e2bb05188f88e']
     url_list = ['http://openapi.tuling123.com/openapi/api/v2',"http://idc.emotibot.com/api/ApiKey/openapi.php"]
     data_json = '''{
-        "reqType":0,
-        "perception": {
-            "inputText": {
-                "text": '%s'
-            }
+	"reqType":0,
+    "perception": {
+        "inputText": {
+            "text": "%s"
         },
-        "userInfo": {
-            "apiKey": '%s',
-            "userId": "qiao"
+        "inputImage": {
+            "url": ""
+        },
+        "selfInfo": {
+            "location": {
+                "city": "",
+                "province": "",
+                "street": ""
+            }
         }
-    }'''
+    },
+    "userInfo": {
+        "apiKey": "%s",
+        "userId": "qiao"
+    }
+}'''
     chat_data = eval('{"cmd": "chat", "appid": apiKey[2], "userid": "qiao", "text": "哈哈", "location": ""}')
 
     #图灵聊天机器人
     @classmethod
     def tu_reply(cls,msg):
-        djson=eval(cls.data_json%(msg,cls.apiKey[0]))
+        djson=eval(cls.data_json%(msg,cls.apiKey[1]))
         resp = requests.post(cls.url_list[0],json=djson)
         return resp.json()['results'][0]['values']['text']
 
     #emotibot聊天机器人
     @classmethod
-    def et_reply(cls,msg):
+    def et_reply(cls,*kwargs):
         res = requests.post(cls.url_list[1],params=cls.chat_data)
         return res.json()['data'][0]['value']
 
@@ -43,6 +54,18 @@ class Robot:
     @classmethod
     def alarm(cls):
         winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS)
+
+#获取消息发送者的信息
+# def get_userinfo(msg):
+#     ma=re.search("'url': '([\u4E00-\u9FA5]+)'",msg)
+#     url=re.search('([\u4E00-\u9FA5]+)',ma[0])[0]
+#     ma=re.search("'city': '([\u4E00-\u9FA5]+)'",msg)
+#     city=re.search('([\u4E00-\u9FA5]+)',ma[0])[0]
+#     ma=re.search("'province': '([\u4E00-\u9FA5]+)'",msg)
+#     province=re.search('([\u4E00-\u9FA5]+)',ma[0])[0]
+#     ma=re.search("'street': '([\u4E00-\u9FA5]+)'",msg)
+#     street=re.search('([\u4E00-\u9FA5]+)',ma[0])[0]
+
 
 #监听别人发给我的消息,个人聊天
 @itchat.msg_register(itchat.content.TEXT)
